@@ -11,7 +11,8 @@ resource "aws_instance" "FGT1" {
     user_data = templatefile("${path.module}/fgt_primary.conf", {
         fortigate2_private_ip = "${aws_network_interface.fgt2_public_interface.private_ip}",
         fortigate1_public_ip = "${aws_network_interface.fgt1_public_interface.private_ip}",
-        fastapi1 = "${module.fastapi1.fastapi_ip}",
+        fastapi1 = "${module.fastapi1.private_ip}",
+        client_ip = "${module.client.private_ip}",
         admin-user = "${var.admin-user}",
         password = "${ var.password }"
     })
@@ -34,7 +35,7 @@ resource "aws_instance" "FGT2" {
     user_data = templatefile("${path.module}/fgt_secondary.conf", {
         fortigate2_public_ip = "${aws_network_interface.fgt2_public_interface.private_ip}",
         fortigate1_private_ip = "${aws_network_interface.fgt1_private_interface.private_ip}",
-        fastapi2 = "${module.fastapi2.fastapi_ip}",
+        fastapi2 = "${module.fastapi2.private_ip}",
         admin-user = "${var.admin-user}",
         password = "${ var.password }"
     })

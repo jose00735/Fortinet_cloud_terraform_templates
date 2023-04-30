@@ -29,8 +29,17 @@ variable "password" {
     default = "password123"
 }
 
-variable "bootstrap" {
+variable "bootstrap1" {
     type = string
-    default = "./bootstrap.sh"
+    default = "./bootstrap1.sh"
 }
 
+variable "bootstrap2" {
+    type = string
+    default = "./bootstrap2.sh"
+}
+
+variable "bootstrap_client" {
+    type = string
+    default = "./bootstrap_client.sh"
+}
