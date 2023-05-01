@@ -12,12 +12,6 @@ resource "aws_internet_gateway" "gw" {
 
 #### DATA #####
 data "aws_availability_zones" "available" {}
-locals {
-    tags = {
-        "Deploy" = "LoadBalancer"
-        "Project" = "TF"
-    }
-}
 
 ######### External and internal load balancer ########
 
@@ -38,22 +32,6 @@ resource "aws_lb" "Internal_LB" {
   enable_deletion_protection = false
   tags = merge(local.tags, {"Name" = "LB"})
 }
-
-resource "aws_security_group" "External_LB_SG" {
-  name        = "loadbalancer-sg"
-  description = "Load balancer security group"
-  vpc_id      = aws_vpc.LBE_LBI.id
-
-  dynamic "ingress" {
-    for_each = local.LB_ingress_rules
-
-    content {
-        from_port = ingress.value.from_port
-        to_port = ingress.value.to_port
-        protocol = ingress.value.protocol
-        cidr_blocks = ingress.value.cidr_blocks
-    }
-  }
 
   egress {
     from_port = 0
@@ -175,13 +153,6 @@ resource "aws_subnet" "private_subnet_1" {
     tags = merge(local.tags, {"Area" = "FGT1"})
 }
 
-resource "aws_subnet" "management_subnet_1" {
-    vpc_id = aws_vpc.LBE_LBI.id 
-    cidr_block = "10.0.2.0/24"
-    availability_zone = data.aws_availability_zones.available.names[1]
-    tags = merge(local.tags, {"Area" = "FGT1"})
-}
-
 resource "aws_network_interface" "fgt1_public_interface" {
     subnet_id = aws_subnet.public_subnet_1.id
     description = "external interface of the fortigate 1"
@@ -194,13 +165,6 @@ resource "aws_network_interface" "fgt1_private_interface" {
     description = "internal interface of the fortigate 2"
     security_groups = [ aws_security_group.FGT.id ]
     source_dest_check = false
-    tags = merge(local.tags, {"Area" = "FGT1"})
-}
-
-resource "aws_network_interface" "fgt1_management_interface" {
-    subnet_id = aws_subnet.management_subnet_1.id
-    description = "mgmt interface of the fortigate 2"
-    security_groups = [ aws_security_group.FGT.id ]
     tags = merge(local.tags, {"Area" = "FGT1"})
 }
 

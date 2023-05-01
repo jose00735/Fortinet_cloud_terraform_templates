@@ -1,12 +1,8 @@
 locals {
-    LB_ingress_rules = [
-    {
-        from_port   = 8080
-        to_port     = 8080
-        protocol    = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
+    tags = {
+        "Deploy" = "LoadBalancer"
+        "Project" = "TF"
     }
-    ]
     FGT_ingress_rules = [
     {
         from_port   = 8080
