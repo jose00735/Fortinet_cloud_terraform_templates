@@ -1,0 +1,11 @@
+variable "admin-user" {}
+variable "password" {}
+variable "private_subnet_address" {}
+variable "GWLB_interface_ip" {}
+variable "private_interface_id" {}
+variable "public_interface_id" {}
+variable "key_name" {}
+variable "tags" {}
+variable "arch" {}  
+variable "ver" {}
+variable "license" {}
