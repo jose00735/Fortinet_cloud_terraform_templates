@@ -16,6 +16,11 @@ variable "vpc_network_definitions" {
       "security_role"   = false
       "available_zones" = 1
     }
+    "Client3" = {
+      "cidr_vpc_block"  = "10.3.0.0/16"
+      "security_role"   = false
+      "available_zones" = 1
+    }
   }
 }
 

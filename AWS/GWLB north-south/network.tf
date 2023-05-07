@@ -197,12 +197,6 @@ resource "aws_default_route_table" "Ingress_routes" {
   tags = merge(local.tags, { "Name" = "Ingres route ${each.key}" })
 }
 
-resource "aws_vpc_endpoint_route_table_association" "Ingress_routes_vpce_associations" {
-  for_each = local.subnet_endpoint_names
-  route_table_id  = aws_vpc.VPCs[local.subnet_endpoint_names[each.key]["vpc"]].default_route_table_id
-  vpc_endpoint_id = aws_vpc_endpoint.endpoint[each.key].id
-}
-
 resource "aws_route_table_association" "Ingress_routes_gw" {
   for_each = var.vpc_network_definitions 
   route_table_id = aws_vpc.VPCs[each.key].default_route_table_id
