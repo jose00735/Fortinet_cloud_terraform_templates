@@ -11,6 +11,8 @@ resource "aws_instance" "FGT" {
     peer_ha_ip = "${var.ha_peer_ip[var.fortigate_name]["ha_peer_ip"]}"
     ha_ip = "${var.ha_peer_ip[var.fortigate_name]["ha_ip"]}"
     mgmt_gateway_ip = "${var.ha_peer_ip[var.fortigate_name]["mgmt_gw"]}"
+    license_file = "${var.license_file[var.fortigate_name]}"
+    license_type = "${var.license_type}"
   })
 
   dynamic "network_interface" {

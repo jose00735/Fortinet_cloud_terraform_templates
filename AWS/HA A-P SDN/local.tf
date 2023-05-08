@@ -111,8 +111,10 @@ locals {
     "FGT2" = { "ha_ip" = cidrhost(local.Subnets_definitions["FGT2-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions["FGT1-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions["FGT2-mgmt"]["cidr_block"], 1)}
   }
 
-  license_file = var.license == "payg" ? "" : 
-
+  license_files = {
+    "FGT1" = var.license == "payg" ? "" : var.license1_dir
+    "FGT2" = var.license == "payg" ? "" : var.license2_dir
+  } 
 }
 
 data "aws_availability_zones" "available" {}

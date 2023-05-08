@@ -34,3 +34,6 @@ variable "license" {
   default = "payg"
 }
 
+variable "license1_dir" {}
+variable "license2_dir" {}
+

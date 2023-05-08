@@ -13,12 +13,12 @@ module "fortigates" {
   role             = each.value
   fortigate_name = each.key
   HA3 = var.HA3
-  license_file = "${var.license}"
+  license_file = "${local.license_files}"
   private_linux_ip = local.linux_ip[each.key]
   tags             = local.tags
   arch             = var.arch
   ver              = var.ver
-  license          = var.license
+  license_type           = "${var.license}"
   ha_peer_ip = local.ha_peer_ip
   IAM_profile = aws_iam_instance_profile.FGT_HA_Profile.name
 }
