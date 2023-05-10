@@ -9,18 +9,20 @@ module "fortigates" {
   admin-user       = var.admin-user
   password         = var.password
   key_name         = aws_key_pair.key_LB.key_name
-  interfaces       = var.HA3 ? local.fgt_interfaces_H3 : local.fgt_interfaces
+  interfaces       = local.fgt_interfaces
   role             = each.value
   fortigate_name = each.key
   HA3 = var.HA3
   license_file = "${local.license_files}"
-  private_linux_ip = local.linux_ip[each.key]
+  private_linux_ip = local.linux_ip[each.key]["instance_IP"]
   tags             = local.tags
   arch             = var.arch
   ver              = var.ver
   license_type           = "${var.license}"
   ha_peer_ip = local.ha_peer_ip
   IAM_profile = aws_iam_instance_profile.FGT_HA_Profile.name
+  vpc_cidr_block = aws_vpc.HA-A-P.cidr_block
+  private_gw = local.linux_ip[each.key]["gateway_IP"]
 }
 
 module "apache" {

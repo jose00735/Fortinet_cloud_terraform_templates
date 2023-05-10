@@ -4,7 +4,7 @@ locals {
     "Deploy"  = "A-H"
   }
 
-  Subnets_definitions = {
+  Subnets_definitions_old = {
     "FGT1-Public" = {
       "cidr_block" = cidrsubnet(var.vpc_cidr, 8, 0)
       "index" = 0
@@ -40,32 +40,11 @@ locals {
   }
   Global_ingress = [
     {
-      description = "allow HTTPS"
-      from_port   = 10443
-      to_port     = 10443
+      description = "allow all"
+      from_port   = 0
+      to_port     = 0
       cidr_blocks = ["0.0.0.0/0"]
-      protocol    = "tcp"
-    },
-    {
-      description = "allow SSH"
-      from_port   = 22
-      to_port     = 22
-      cidr_blocks = ["0.0.0.0/0"]
-      protocol    = "tcp"
-    },
-    {
-      description = "allow SSH protected device"
-      from_port   = 2222
-      to_port     = 2222
-      cidr_blocks = ["0.0.0.0/0"]
-      protocol    = "tcp"
-    },
-    {
-      description = "allow http protected device"
-      from_port   = 80
-      to_port     = 80
-      cidr_blocks = ["0.0.0.0/0"]
-      protocol    = "tcp"
+      protocol    = "-1"
     }
   ]
 
@@ -79,7 +58,9 @@ locals {
     }
   ]
 
-  Subnets_definitions_H3  = { for k, v in local.Subnets_definitions : "${k}" => v if endswith(k, "mgmt") == false }
+  Subnets_definitions_H3  = { for k, v in local.Subnets_definitions_old : "${k}" => v if endswith(k, "mgmt") == false }
+
+  Subnets_definitions = var.HA3 == false ? local.Subnets_definitions_old : local.Subnets_definitions_H3
 
   interfaces_EIP_names_H3 = { for k, v in local.Subnets_definitions : "${k}" => v if endswith(k, "HA") == true || k == "FGT1-Public" }
 
@@ -91,10 +72,6 @@ locals {
     "FGT1" = { for k, v in local.Subnets_definitions : "${k}" => {"id" = aws_network_interface.FGT_Interfaces[k].id, "gateway_ip" = cidrhost(v["cidr_block"], 1), "index" = v["index"]} if startswith(k, "FGT1") == true }
     "FGT2" = { for k, v in local.Subnets_definitions : "${k}" => {"id" = aws_network_interface.FGT_Interfaces[k].id, "gateway_ip" = cidrhost(v["cidr_block"], 1), "index" = v["index"]} if startswith(k, "FGT2") == true }
   }
-  fgt_interfaces_H3 = {
-    "FGT1" = { for k, v in local.Subnets_definitions : "${k}" => {"id" = aws_network_interface.FGT_Interfaces[k].id, "gateway_ip" = cidrhost(v["cidr_block"], 1), "index" = v["index"]} if startswith(k, "FGT1") == true && endswith(k, "mgmt") == false }
-    "FGT2" = { for k, v in local.Subnets_definitions : "${k}" => {"id" = aws_network_interface.FGT_Interfaces[k].id, "gateway_ip" = cidrhost(v["cidr_block"], 1), "index" = v["index"]} if startswith(k, "FGT2") == true && endswith(k, "mgmt") == false }
-  }
 
   fgt_roles = {
     "FGT1" = "Master"
@@ -102,19 +79,28 @@ locals {
   }
 
   linux_ip = {
-    "FGT1" = cidrhost(local.Private_subnets["FGT1-Private"]["cidr_block"], 100)
-    "FGT2" = cidrhost(local.Private_subnets["FGT2-Private"]["cidr_block"], 100)
+    "FGT1" = {"instance_IP" = cidrhost(local.Private_subnets["FGT1-Private"]["cidr_block"], 100), "gateway_IP" = cidrhost(local.Private_subnets["FGT1-Private"]["cidr_block"], 1)}
+    "FGT2" = {"instance_IP" = cidrhost(local.Private_subnets["FGT2-Private"]["cidr_block"], 100), "gateway_IP" = cidrhost(local.Private_subnets["FGT2-Private"]["cidr_block"], 1)}
   }
 
-  ha_peer_ip = {
-    "FGT1" = { "ha_ip" = cidrhost(local.Subnets_definitions["FGT1-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions["FGT2-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions["FGT1-mgmt"]["cidr_block"], 1)}
-    "FGT2" = { "ha_ip" = cidrhost(local.Subnets_definitions["FGT2-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions["FGT1-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions["FGT2-mgmt"]["cidr_block"], 1)}
+  ha_peer_ip_old = {
+    "FGT1" = { "ha_ip" = cidrhost(local.Subnets_definitions_old["FGT1-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions_old["FGT2-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions_old["FGT1-mgmt"]["cidr_block"], 1)}
+    "FGT2" = { "ha_ip" = cidrhost(local.Subnets_definitions_old["FGT2-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions_old["FGT1-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions_old["FGT2-mgmt"]["cidr_block"], 1)}
   }
+
+  ha_peer_ip_HA3 = {
+    "FGT1" = { "ha_ip" = cidrhost(local.Subnets_definitions_H3["FGT1-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions_H3["FGT2-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions_H3["FGT1-HA"]["cidr_block"], 1)}
+    "FGT2" = { "ha_ip" = cidrhost(local.Subnets_definitions_H3["FGT2-HA"]["cidr_block"], 10) , "ha_peer_ip" = cidrhost(local.Subnets_definitions_H3["FGT1-HA"]["cidr_block"], 10), "mgmt_gw" = cidrhost(local.Subnets_definitions_H3["FGT2-HA"]["cidr_block"], 1)}
+  }
+
+  ha_peer_ip = var.HA3 == false ? local.ha_peer_ip_old : local.ha_peer_ip_HA3
 
   license_files = {
     "FGT1" = var.license == "payg" ? "" : var.license1_dir
     "FGT2" = var.license == "payg" ? "" : var.license2_dir
   } 
+
+  EIPs_names = [ for k, v in aws_eip.EIPs : "${k} = ${v.public_ip}" ]
 }
 
 data "aws_availability_zones" "available" {}

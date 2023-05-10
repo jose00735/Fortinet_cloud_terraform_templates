@@ -49,6 +49,7 @@ resource "aws_security_group" "global" {
 resource "aws_network_interface" "FGT_Interfaces" {
   for_each        = var.HA3 ? local.Subnets_definitions_H3 : local.Subnets_definitions
   description = "FGT-Interface-${each.key}"
+  source_dest_check = endswith(each.key, "Private") == true ? false : true
   subnet_id       = aws_subnet.Subnets[each.key].id
   private_ips     = [cidrhost(each.value["cidr_block"], 10)]
   security_groups = [aws_security_group.global.id]
